@@ -19,7 +19,6 @@ def generate_graph(indeces, coords_sel, normals):
         connected_nodes = []
         for index, neighbor in enumerate(neighbors[0]):
             geo_dist = dist[0][index]*(2-np.dot(normals[indeces[idx]], normals[indeces[neighbor]]))        
-            #distances.at[ first_sel[idx] , first_sel[neighbor] ] = geo_dist
             if geo_dist !=0:
                 connected_nodes.append((indeces[neighbor], geo_dist))
 
