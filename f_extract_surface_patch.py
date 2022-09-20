@@ -154,15 +154,17 @@ def extract_surface_patch(coords, center_index, radius):
     patch_normals = normals[patch_indeces]
 
     # Make a graph out of the extracted patch
-    patch_graph = generate_graph(patch_indeces, patch_coords, normals)
-    patch_graph = make_graph_bidirectional(patch_graph)
-
+    #patch_graph = generate_graph(patch_indeces, patch_coords, normals)
+    #patch_graph = make_graph_bidirectional(patch_graph)
+    
     # Generate a double dictionary where the distance between two points can be accessed with dict[point1][point2]
     pairwise_dist_dict = {}
-    for key in patch_graph:
-        distances = dijkstra(patch_graph, key)
-        pairwise_dist_dict[key]=distances
-
+    for idx in patch_indeces:
+        distances = dijkstra(graph, idx)
+        pairwise_dist_dict[idx]=distances
+    
+    
+    
     # Generate a quadratic dataframe for the pairwise distances between all points, label the columns and rows accordingly
     pairwise_distances = pd.DataFrame(np.zeros((len(patch_indeces),len(patch_indeces))))
     pairwise_distances.columns = patch_indeces
@@ -173,4 +175,4 @@ def extract_surface_patch(coords, center_index, radius):
         for idx in patch_indeces:
             pairwise_distances.at[index, idx] = pairwise_dist_dict[index][idx]
 
-    return patch_indeces, patch_coords, pairwise_distances
+    return patch_indeces, patch_coords, pairwise_distances, first_sel
