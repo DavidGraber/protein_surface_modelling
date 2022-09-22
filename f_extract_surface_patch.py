@@ -5,51 +5,27 @@ def generate_graph(indeces, coords_sel, normals):
     
     from sklearn.neighbors import NearestNeighbors
     import numpy as np
+    
+    graph = {p:{} for p in indeces}
 
     knn = NearestNeighbors(n_neighbors=4)
     knn.fit(coords_sel)
-    graph = {}
     
     #loop through each point that is within the radius and find its nearest neighbors and their euclidean distance
     for idx, point in enumerate(coords_sel):
         dist, neighbors = knn.kneighbors([point], return_distance=True)
-        
-        # loop through the nearest neighbors calculate their geodesic distance to the point chosen above
-        # Add the geodesic distance to a graph-dictionary
-        connected_nodes = []
-        for index, neighbor in enumerate(neighbors[0]):
-            geo_dist = dist[0][index]*(2-np.dot(normals[indeces[idx]], normals[indeces[neighbor]]))        
-            if geo_dist !=0:
-                connected_nodes.append((indeces[neighbor], geo_dist))
-
-        graph[indeces[idx]]=connected_nodes                      
-    
-    return graph
-
-
-def make_graph_bidirectional(graph):  
-
-    '''The result of the generate_graph function is a graph where individual points can be "connected" to another point, but not
-    vice-versa. This function detect unidirectional connections and adds the connection information to both involved points'''
-    
-    #loop through all the keys
-    for key in graph:
-        
-        # loop through all the neighbors of the key and their distances to the key
-        for p, d in graph[key]:
-            # For each neighbor, set bidirectional = False
-            bidirectional = False
-            
-            # check the graph entry of that neighbor, if there the key is among its connected points, set bidire = True
-            for pt,_ in graph[p]:
-                if pt == key:
-                    bidirectional = True
-
-            if not bidirectional:
-                current_list = graph[p]
-                current_list.append((key,d))
-                graph[p]=current_list
                 
+        # loop through the nearest neighbors, calculate their geodesic distance to the point chosen above
+        # Add the geodesic distance to a graph-dictionary
+        
+        for index, neighbor in enumerate(neighbors[0]):
+            
+            geo_dist = dist[0][index]*(2-np.dot(normals[indeces[idx]], normals[indeces[neighbor]]))        
+
+            if geo_dist !=0:
+                graph[indeces[idx]][indeces[neighbor]]=geo_dist
+                graph[indeces[neighbor]][indeces[idx]]=geo_dist
+
     return graph
 
 
@@ -73,7 +49,10 @@ def dijkstra(graph, center):
     # set the distance for the start to be 0
     dist_from_center[center] = 0
     
-    for p in range(n): 
+    
+    
+    for p in range(n):
+        
         # loop through all the nodes to check which one is not yet visited and has the lowest distance to the current node
         u = -1
         for key in graph:
@@ -96,9 +75,10 @@ def dijkstra(graph, center):
         
         # from the current selected node u, check what the distances to the next nodes are and update their dist from center
         # loop through all the points (and their weights) that can be reached from our current node
-        for v, l in graph[u]:
-            if dist_from_center[u] + l < dist_from_center[v]:
-                dist_from_center[v] = dist_from_center[u] + l
+        for key in graph[u]:
+            if dist_from_center[u] + graph[u][key] < dist_from_center[key]:
+                dist_from_center[key]= dist_from_center[u] + graph[u][key]
+    
     return dist_from_center
 
 
@@ -118,8 +98,6 @@ def extract_surface_patch(coords, center_index, radius):
     #Select a random point of the cloud, around which to draw a geodesic circle, set a geodesic radius
     radius = radius
     center_index = center_index
-    center_coords = coords[center_index]
-    center_norm = normals[center_index]
 
     first_sel = [center_index] # to save all the points that are within the non-geodesic radius
 
@@ -135,9 +113,6 @@ def extract_surface_patch(coords, center_index, radius):
 
     # generate a graph with the selected points
     graph = generate_graph(first_sel, coords_sel, normals)
-
-    # make graph bidirectional
-    graph = make_graph_bidirectional(graph)
 
     # check for each point the GEODESIC distance to the center with djikstra
     dist_from_center = dijkstra(graph, center_index)
