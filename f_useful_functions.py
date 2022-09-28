@@ -12,10 +12,33 @@ def normalize_columns_01(array):
         array_norm[:,column] = column_norm
     return array_norm
 
-def convert_to_polar(cartesian_coords):
-    x= cartesian_coords[:, 0]
-    y = cartesian_coords[:,1]
-    rho = np.sqrt(x**2 + y**2)
-    theta = np.arctan2(y, x)
-    polar_coords = np.column_stack((rho, theta))    
+def cart_to_polar(cartesian_coords):
+    if cartesian_coords.ndim == 2:
+        x= cartesian_coords[:, 0]
+        y = cartesian_coords[:,1]
+        rho = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        polar_coords = np.column_stack((rho, theta))
+    elif cartesian_coords.ndim ==1:
+        x= cartesian_coords[0]
+        y = cartesian_coords[1]
+        rho = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+        polar_coords = np.array([rho, theta])
     return polar_coords
+
+
+def polar_to_cart(polar_coords):
+    if polar_coords.ndim == 2:
+        rho = polar_coords[:, 0]
+        theta = polar_coords[:,1]
+        x = rho * np.cos(theta)
+        y = rho * np.sin(theta)
+        cart_coords = np.column_stack((x, y))
+    elif polar_coords.ndim == 1:
+        rho = polar_coords[0]
+        theta = polar_coords[1]
+        x = rho * np.cos(theta)
+        y = rho * np.sin(theta)
+        cart_coords = np.array([x, y])
+    return cart_coords
