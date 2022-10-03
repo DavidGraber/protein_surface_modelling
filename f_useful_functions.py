@@ -4,6 +4,10 @@ def normalize_01(array):
     array_norm = (array - np.min(array))/(np.max(array)-np.min(array))
     return array_norm
 
+def normalize_m11(array):
+    array_norm = 2*(array - np.min(array))/(np.max(array)-np.min(array))-1
+    return array_norm
+
 def normalize_columns_01(array):
     array_norm = np.zeros_like(array)
     for column in range(array.shape[1]):
@@ -11,6 +15,15 @@ def normalize_columns_01(array):
         column_norm = (to_be_normed - np.min(to_be_normed))/(np.max(to_be_normed)-np.min(to_be_normed))
         array_norm[:,column] = column_norm
     return array_norm
+
+def normalize_columns_m11(array):
+    array_norm = np.zeros_like(array)
+    for column in range(array.shape[1]):
+        to_be_normed = array[:,column]
+        column_norm = 2*(to_be_normed - np.min(to_be_normed))/(np.max(to_be_normed)-np.min(to_be_normed))-1
+        array_norm[:,column] = column_norm
+    return array_norm
+
 
 def cart_to_polar(cartesian_coords):
     if cartesian_coords.ndim == 2:
