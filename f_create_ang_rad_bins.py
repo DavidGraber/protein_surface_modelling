@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from f_useful_functions import normalize_01
-from f_useful_functions import normalize_columns_01
-from f_useful_functions import polar_to_cart
+from f_helper_functions import normalize_01
+from f_helper_functions import normalize_columns_01
+from f_helper_functions import polar_to_cart
 
 def create_ang_rad_bins(
     n_angular_bins,
@@ -38,7 +38,7 @@ def create_ang_rad_bins(
 
             # compute the bins nearest_neighbours in the cartesian representation of the patch
             dist, neighbors = knn.kneighbors( [cart], return_distance=True)
-        
+
             feature_array_neigbors = features_patch[neighbors][0]
 
             # Compute a distance-weighted average of the feature vectors of all found nearest neighbors
@@ -46,5 +46,5 @@ def create_ang_rad_bins(
             bin_desc = np.sum(feature_array_neigbors * (1/dist.T), axis = 0) / np.sum(1/dist.T)
 
             z[angular_bin, radial_bin]=bin_desc
-
+            
     return z

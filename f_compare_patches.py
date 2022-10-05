@@ -12,7 +12,7 @@ def calc_dot_prod_matrix(tensor1, tensor2):
     n_angular = tensor1.shape[0]
     n_radial = tensor1.shape[1]
 
-    dot_matrix = np.zeros([72,10])
+    dot_matrix = np.zeros([n_angular,n_radial])
 
     for ang in range(n_angular):
         for rad in range(n_radial):
