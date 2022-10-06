@@ -5,19 +5,30 @@ from f_helper_functions import normalize_columns_01
 from f_helper_functions import polar_to_cart
 
 def create_ang_rad_bins(
-    n_angular_bins,
-    n_radial_bins,
-    max_rho,
+    angular,
+    radial,
     features_patch,
     cart_coords_patch,
     n_nearest_neigh
     ):
 
-    #max_rho = np.max(polar_coords_patch[:,0])
-
-    # Create meshgrid n_angular_bins x n_radial_bins (+1 to have the right numb or spaces in between)
-    angular, radial = np.mgrid[-np.pi:np.pi:complex(n_angular_bins+1), 0:max_rho:complex(n_radial_bins+1)]
+    '''Translates a patch of points into a meshgrid of fixed size with features assigned to each bin based on 
+    a weighted average of the features of the points in vicinity of that bin
+    . 
+    Fuction that takes 
+    - a meshgrid (angular, radial)
+    - a matrix with features (features_patch)
+    - the cartesian coordinates of the patch points
+    - a number of neirest neighbors that should be taken into account for calculating a bins feature vector
     
+    Returns a tensor of size (angular_bins, radial_bins, n_features)'''
+
+    if angular.shape != radial.shape:
+        raise Exception('Meshgrid matrices must be of same shape')
+
+    n_angular_bins = angular.shape[0]-1
+    n_radial_bins = radial.shape[1]-1
+   
     # Create empty feature array with one n_angular_bins x n_radial_bins x n_features
     z = np.zeros((angular.shape[0]-1, angular.shape[1]-1, features_patch.shape[1]))
 
