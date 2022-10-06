@@ -40,10 +40,11 @@ def create_ang_rad_bins(
             dist, neighbors = knn.kneighbors( [cart], return_distance=True)
 
             feature_array_neigbors = features_patch[neighbors][0]
+            weights = ((1/dist**2).T) # contribution of the neighbor to the bin features decreases exponentially with distance
 
             # Compute a distance-weighted average of the feature vectors of all found nearest neighbors
             # and assign the resulting mean vector to the bin
-            bin_desc = np.sum(feature_array_neigbors * (1/dist.T), axis = 0) / np.sum(1/dist.T)
+            bin_desc = np.sum(feature_array_neigbors * weights, axis = 0) / np.sum(weights)
 
             z[angular_bin, radial_bin]=bin_desc
             
