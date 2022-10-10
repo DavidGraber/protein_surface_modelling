@@ -1,10 +1,16 @@
+import numpy as np
+from sklearn.neighbors import NearestNeighbors
+import open3d as o3d
+import pandas as pd
+import time   
+
 def generate_graph(indeces, coords_sel, normals):
 
     '''Function that takes a set of points, with their label, coordinates and surface normals. Calculates for each point the 
     geodesic distance to its n nearest neighbors and saves that information in a dictionary representing a graph. '''
     
-    from sklearn.neighbors import NearestNeighbors
-    import numpy as np
+    #from sklearn.neighbors import NearestNeighbors
+    #import numpy as np
     
     graph = {p:{} for p in indeces}
 
@@ -70,32 +76,66 @@ def distances_from_center(graph, center):
                 dist_from_center[key]= dist_from_center[u] + graph[u][key]
     
     return dist_from_center
+    
+
+
+def compute_pairwise_distances(graph, patch_indeces):
+
+    distance_matrix = np.zeros([len(patch_indeces),len(patch_indeces)])
+
+    keys = list(graph.keys())
+    lookup = {key:{} for key in keys}
+
+    for idx, start in enumerate(patch_indeces):
+
+        dist_from_s = {key:100 for key in keys}
+        dist_from_s[start] = 0
+        visited = {key:False for key in keys}
+
+        while False in visited.values():
+            dist = 100
+            for key in dist_from_s:
+                if dist_from_s[key]<dist and not visited[key]:
+                    dist = dist_from_s[key]
+                    loc = key
+
+            if not lookup[loc] == {}:
+                for key in dist_from_s:
+                    if dist_from_s[loc] + lookup[loc][key] < dist_from_s[key]:
+                        dist_from_s[key] = dist_from_s[loc] + lookup[loc][key]
+                visited[loc] = True
+
+            else: # loop through the neighbors of this node loc and update its neighbors
+                for key in graph[loc]:  
+                    if dist_from_s[loc] + graph[loc][key] < dist_from_s[key]:
+                        dist_from_s[key] = dist_from_s[loc] + graph[loc][key] 
+
+                visited[loc] = True
+
+        lookup[start] = dist_from_s
+        distance_matrix[idx, :] = distance_matrix[:, idx] = [dist_from_s[point] for point in patch_indeces]
+
+    return distance_matrix
+
 
 
 
 def extract_surface_patch(coords, center_index, radius):
     
-    import open3d as o3d
-    import numpy as np
-    import pandas as pd
-    from sklearn.neighbors import NearestNeighbors
-    import time               #Remove
-
     pointcloud = o3d.geometry.PointCloud()
     pointcloud.points = o3d.utility.Vector3dVector(coords)
     pointcloud.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamKNN(knn = 5))
     pointcloud.orient_normals_consistent_tangent_plane(k=5)
     normals = np.asarray(pointcloud.normals)
 
-    first_sel = [center_index] # to save all the points that are within the non-geodesic radius
-
+    first_sel = [] # to save all the points that are within the non-geodesic radius
 
     #loop through all the points and calculate their euclidean distance to the selected center
     for index, point in enumerate(coords):
         dist = np.linalg.norm(coords[center_index]-point)
 
         # first selection with only those points that are close to the center point
-        if dist < radius and dist != 0:
+        if dist < radius:
             first_sel.append(index)
             
     coords_sel = coords[first_sel]
@@ -107,12 +147,12 @@ def extract_surface_patch(coords, center_index, radius):
     end = time.time()
     print("Graph Generation: "+ str(end - start) + 's')
 
+
     # check for each point the GEODESIC distance to the center with djikstra
     start = time.time()
     dist_from_center = distances_from_center(graph, center_index)
     end = time.time()
     print("Distances from center: "+ str(end - start)+ 's')
-
 
 
     # Collect the indeces of the points that within the geodesic radius from the center point
@@ -128,56 +168,19 @@ def extract_surface_patch(coords, center_index, radius):
     print("Extraction of patch members: "+ str(end - start)+ 's')
 
 
-
-    #Make a new graph containing only the points of the patch + their nearest neighbors outside of the patch
+    # Generate a new graph including only the patch members
     start = time.time()
-    knn = NearestNeighbors(n_neighbors=30)
-    knn.fit(coords_sel)
-
-    second_sel = []
-
-    #Compute the nearest neighbors of the points of the patch and add them to second_sel
-    for point in patch_coords: 
-        neighbors = knn.kneighbors([point], return_distance=False)
-        for neighbor in neighbors[0]:
-            if first_sel[neighbor] not in second_sel:
-                second_sel.append(first_sel[neighbor])
-    
-    coords_second_sel = coords[second_sel]
-    
-    end = time.time()
-    print("Add nearest neighbors to second_sel: " + str(end - start)+ 's')
-
-
-    start = time.time()
-    patch_graph = generate_graph(second_sel, coords_second_sel, normals)
+    patch_graph = generate_graph(patch_indeces, patch_coords, normals)
     end = time.time()
     print("Generation of Patch Graph: " + str(end - start)+ 's')
 
 
-
-    # Generate a dict with the pairwise distances
+    # Compute the pairwise distances between all points in the patch_graph: 
     start = time.time()
-    pairwise_dist_dict = {}
-    for key in patch_graph:
-        distances = distances_from_center(patch_graph, key)
-        pairwise_dist_dict[key]=distances
+    pairwise_distances = compute_pairwise_distances(patch_graph, patch_indeces)
     end = time.time()
-    print("Pairwise Dist Dict " + str(end - start)+ 's')
+    print("Computation of distance matrix: " + str(end - start)+ 's')
 
-
-    start = time.time()
-    # Generate a quadratic dataframe for the pairwise distances between all points, label the columns and rows accordingly
-    pairwise_distances = pd.DataFrame(np.zeros((len(patch_indeces),len(patch_indeces))))
-    pairwise_distances.columns = patch_indeces
-    pairwise_distances.index = patch_indeces
-
-    for p in patch_indeces:
-        for q in patch_indeces:
-            pairwise_distances.at[p,q] = pairwise_dist_dict[p][q]    
-    
-    end = time.time()
-    print("Pairwise Distance Matrix: " + str(end - start)+ 's')
    
-    return patch_indeces, patch_coords, pairwise_distances, first_sel, second_sel
+    return patch_indeces, patch_coords, pairwise_distances
 
