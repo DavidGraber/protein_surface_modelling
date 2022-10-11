@@ -141,21 +141,21 @@ def extract_surface_patch(coords, center_index, radius):
 
 
     # generate a graph with the selected points
-    start = time.time()
+    #start = time.time()
     graph = generate_graph(first_sel, coords_sel, normals)
-    end = time.time()
-    print("Graph Generation: "+ str(end - start) + 's')
+    #end = time.time()
+    #print("Graph Generation: "+ str(end - start) + 's')
 
 
     # check for each point the GEODESIC distance to the center with djikstra
-    start = time.time()
+    #start = time.time()
     dist_from_center = distances_from_center(graph, center_index)
-    end = time.time()
-    print("Distances from center: "+ str(end - start)+ 's')
+    #end = time.time()
+    #print("Distances from center: "+ str(end - start)+ 's')
 
 
     # Collect the indeces of the points that within the geodesic radius from the center point
-    start = time.time()
+    #start = time.time()
 
     patch_indeces = []
     for key in dist_from_center:
@@ -163,15 +163,15 @@ def extract_surface_patch(coords, center_index, radius):
             patch_indeces.append(key)
     patch_coords = coords[patch_indeces]
     
-    end = time.time()
-    print("Extraction of patch members: "+ str(end - start)+ 's')
+    #end = time.time()
+    #print("Extraction of patch members: "+ str(end - start)+ 's')
 
 
     # Generate a new graph including only the patch members
-    start = time.time()
+    #start = time.time()
     patch_graph = generate_graph(patch_indeces, patch_coords, normals)
-    end = time.time()
-    print("Generation of Patch Graph: " + str(end - start)+ 's')
+    #end = time.time()
+    #print("Generation of Patch Graph: " + str(end - start)+ 's')
 
 
     # Compute the pairwise distances between all points in the patch_graph: 
