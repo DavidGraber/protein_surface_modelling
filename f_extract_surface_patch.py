@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import open3d as o3d
-import pandas as pd
 import time   
 
 def generate_graph(indeces, coords_sel, normals):
