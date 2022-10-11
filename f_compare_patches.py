@@ -37,7 +37,7 @@ def compare_patches(tensor1, tensor2, max_rho):
         # Calculate the complementarity in the original position
         best_dot_matrix = calc_dot_prod_matrix(tensor1, tensor2)*weight_vector
         comp_score = np.sum(best_dot_matrix)
-        print("Initial score: " + str(int(comp_score)))
+        #print("Initial score: " + str(int(comp_score)))
         
         best_score = comp_score
         best_rotation = 0
@@ -50,7 +50,7 @@ def compare_patches(tensor1, tensor2, max_rho):
             rot_tensor2 = rotate_circular_patch(rot_tensor2)
             dot_matrix = calc_dot_prod_matrix(tensor1, rot_tensor2)*weight_vector
             comp_score = np.sum(dot_matrix)
-            print("Rotation: " +str(rotation+1)+ ", Score: " + str(comp_score))
+            # print("Rotation: " +str(rotation+1)+ ", Score: " + str(comp_score))
 
             if comp_score > best_score:
                 best_score = comp_score
@@ -58,5 +58,5 @@ def compare_patches(tensor1, tensor2, max_rho):
                 best_tensor2 = rot_tensor2
                 best_dot_matrix = dot_matrix
 
-        print("Best Score: " + str(int(best_score)) + " after " + str(best_rotation) + " rotations")
+        #print("Best Score: " + str(int(best_score)) + " after " + str(best_rotation) + " rotations")
         return best_score, best_rotation, best_tensor2, best_dot_matrix
