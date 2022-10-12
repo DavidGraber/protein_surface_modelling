@@ -6,6 +6,6 @@ test.ipynb
 toygraph.npy
 neural_net.ipynb
 extract_patches.ipynb
-extracted patches/
+extracted_patches/
 official/
 normalization_-1_1_complete/
