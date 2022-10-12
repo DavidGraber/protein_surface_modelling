@@ -7,5 +7,3 @@ toygraph.npy
 neural_net.ipynb
 extract_patches.ipynb
 extracted_patches/
-extracted_patches/official/
-extracted_patches/normalization_-1_1_complete/
