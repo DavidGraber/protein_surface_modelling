@@ -4,3 +4,8 @@ extract_surface_patch.ipynb
 old.ipynb
 test.ipynb
 toygraph.npy
+neural_net.ipynb
+extract_patches.ipynb
+extracted patches/
+official/
+normalization_-1_1_complete/
