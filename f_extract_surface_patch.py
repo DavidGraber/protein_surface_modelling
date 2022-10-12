@@ -175,10 +175,10 @@ def extract_surface_patch(coords, center_index, radius):
 
 
     # Compute the pairwise distances between all points in the patch_graph: 
-    start = time.time()
+    #start = time.time()
     pairwise_distances = compute_pairwise_distances(patch_graph, patch_indeces)
-    end = time.time()
-    print("Computation of distance matrix: " + str(end - start)+ 's')
+    #end = time.time()
+    #print("Computation of distance matrix: " + str(end - start)+ 's')
 
    
     return patch_indeces, patch_coords, pairwise_distances
