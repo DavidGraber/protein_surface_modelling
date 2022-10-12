@@ -6,4 +6,4 @@ test.ipynb
 toygraph.npy
 neural_net.ipynb
 extract_patches.ipynb
-extracted_patches/
+extracted_patches/*
