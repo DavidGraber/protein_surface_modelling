@@ -8,6 +8,7 @@ predfeatures/
 
 old.ipynb
 toygraph.npy
+coordinate_aligner.py
 
 
 *test*
