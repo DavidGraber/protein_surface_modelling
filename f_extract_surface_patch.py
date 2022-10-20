@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import open3d as o3d
-import time   
+#import time   
 
 def generate_graph(indeces, coords_sel, normals):
 
@@ -13,7 +13,7 @@ def generate_graph(indeces, coords_sel, normals):
     
     graph = {p:{} for p in indeces}
 
-    knn = NearestNeighbors(n_neighbors=8)
+    knn = NearestNeighbors(n_neighbors=10)
     knn.fit(coords_sel)
 
     #loop through each point that is within the radius and find its nearest neighbors and their euclidean distance
@@ -40,79 +40,77 @@ def distances_from_center(graph, center):
     
     '''Function that takes a graph and the starting node and returns a list of distances 
     from the starting node to every other node'''
-
-    n = len(graph) # How many nodes are in the graph?
-    # initialize a dictionary to save the distances of each node from the start node
-    dist_from_center = {key:100 for key in graph}  
-    # initialize a dictionary to save which node has been visited already
-    visited = {key:False for key in graph}      
-    # set the distance for the start to be 0
+    
+    dist_from_center = {key:100 for key in graph}
     dist_from_center[center] = 0
+    unseen_nodes = list(dist_from_center.keys())
     
-    for p in range(n):  
-        # loop through all the nodes to check which one is not yet visited and has the lowest distance to the current node
-        u = -1
-        for key in graph:
-            # if the node 'key' hasn't been visited and
-            # we haven't processed it or the distance we have for it is less
-            # than the distance we have to the "start" node
-            
-            # our start node will be selected first and assigned to u
-            if not visited[key] and (u == -1 or dist_from_center[key] < dist_from_center[u]):
-                u = key 
+    for _ in graph:
+
+        # IDENTIFICATION OF THE NEXT POINT TO LOOK AT (SHORTES DISTANCE FROM START)
+        dist = 101
+        for node in unseen_nodes:
+            if dist_from_center[node]<dist:
+                dist = dist_from_center[node]
+                loc = node
+
+        # LOOP THROUGH ALL THE NEIGHBORS OF THE NODE AND ADJUST THE VALUES OF THOSE, IF NEEDED
+        for neighbor, weight in graph[loc].items():               
+            if dist + weight < dist_from_center[neighbor]:
+                dist_from_center[neighbor] = dist + weight 
+        unseen_nodes.remove(loc)
         
-        # all the nodes have been visited or we can't reach this node
-        if dist_from_center[u] == 1000:
-            break
-        
-        # set the node as visited
-        visited[u] = True
-        
-        # from the current selected node u, check what the distances to the next nodes are and update their dist from center
-        # loop through all the points (and their weights) that can be reached from our current node
-        for key in graph[u]:
-            if dist_from_center[u] + graph[u][key] < dist_from_center[key]:
-                dist_from_center[key]= dist_from_center[u] + graph[u][key]
-    
     return dist_from_center
-    
+
 
 
 def compute_pairwise_distances(graph, patch_indeces):
 
+    '''Djikstra Implementation: Function that takes a graph and returns a matrix 
+    of size n_nodes x n_nodes containing the pairwise distances'''
+
     distance_matrix = np.zeros([len(patch_indeces),len(patch_indeces)])
-
     keys = list(graph.keys())
-    lookup = {key:{} for key in keys}
 
+    #next_point_time = 0
+    #next_point = 0
+    #looping_neighbors_time = 0
+    #looping_neighbors = 0
+    
     for idx, start in enumerate(patch_indeces):
-
         dist_from_s = {key:100 for key in keys}
         dist_from_s[start] = 0
-        visited = {key:False for key in keys}
+        unseen_nodes = list(dist_from_s.keys())
+    
+        for _ in keys:
 
-        while False in visited.values():
-            dist = 100
-            for key in dist_from_s:
-                if dist_from_s[key]<dist and not visited[key]:
-                    dist = dist_from_s[key]
-                    loc = key
+            # IDENTIFICATION OF THE NEXT POINT TO LOOK AT (SHORTES DISTANCE FROM START)
+            #tic = time.time()
+            dist = 101
+            for node in unseen_nodes:
+                if dist_from_s[node]<dist:
+                    dist = dist_from_s[node]
+                    loc = node
+            #toc = time.time()
+            #next_point_time += toc-tic
+            #next_point+=1
 
-            if not lookup[loc] == {}:
-                for key in dist_from_s:
-                    if dist_from_s[loc] + lookup[loc][key] < dist_from_s[key]:
-                        dist_from_s[key] = dist_from_s[loc] + lookup[loc][key]
-                visited[loc] = True
 
-            else: # loop through the neighbors of this node loc and update its neighbors
-                for key in graph[loc]:  
-                    if dist_from_s[loc] + graph[loc][key] < dist_from_s[key]:
-                        dist_from_s[key] = dist_from_s[loc] + graph[loc][key] 
+            # LOOP THROUGH ALL THE NEIGHBORS OF THE NODE AND ADJUST THE VALUES OF THOSE, IF NEEDED
+            #tic = time.time()
+            for neighbor, weight in graph[loc].items():               
+                if dist + weight < dist_from_s[neighbor]:
+                    dist_from_s[neighbor] = dist + weight 
+            unseen_nodes.remove(loc)
+            #toc = time.time()
+            #looping_neighbors_time += toc-tic
+            #looping_neighbors += 1
 
-                visited[loc] = True
-
-        lookup[start] = dist_from_s
+        
         distance_matrix[idx, :] = distance_matrix[:, idx] = [dist_from_s[point] for point in patch_indeces]
+
+    #print("Next Point Searching:", next_point_time, "(", next_point, " times) = {t:.10f}".format(t =  next_point_time/next_point))
+    #print("Looping Neighbors:", looping_neighbors_time, "(", looping_neighbors, " times) = {t:.10f}".format(t =  looping_neighbors_time/looping_neighbors))
 
     return distance_matrix
 
