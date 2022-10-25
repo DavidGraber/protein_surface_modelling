@@ -4,6 +4,7 @@ alphafold_outputs/
 masif_site_outputs/
 predfeatures/
 1fcc/
+data/
 
 
 old.ipynb
