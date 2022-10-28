@@ -1,7 +1,5 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from f_helper_functions import normalize_01
-from f_helper_functions import normalize_columns_01
 from f_helper_functions import polar_to_cart
 
 def create_ang_rad_bins(
@@ -15,7 +13,7 @@ def create_ang_rad_bins(
     '''Translates a patch of points into a meshgrid of fixed size with features assigned to each bin based on 
     a weighted average of the features of the points in vicinity of that bin
     . 
-    Fuction that takes 
+    Function that takes 
     - a meshgrid (angular, radial)
     - a matrix with features (features_patch)
     - the cartesian coordinates of the patch points
@@ -24,7 +22,7 @@ def create_ang_rad_bins(
     Returns a tensor of size (angular_bins, radial_bins, n_features)'''
 
     if angular.shape != radial.shape:
-        raise Exception('Meshgrid matrices must be of same shape')
+        raise Exception('Meshgrid matrices must be of same size')
 
     n_angular_bins = angular.shape[0]-1
     n_radial_bins = radial.shape[1]-1
@@ -50,12 +48,12 @@ def create_ang_rad_bins(
             # compute the bins nearest_neighbours in the cartesian representation of the patch
             dist, neighbors = knn.kneighbors( [cart], return_distance=True)
 
-            feature_array_neigbors = features_patch[neighbors][0]
+            feature_array_neighbors = features_patch[neighbors][0]
             weights = ((1/dist**2).T) # contribution of the neighbor to the bin features decreases exponentially with distance
 
             # Compute a distance-weighted average of the feature vectors of all found nearest neighbors
             # and assign the resulting mean vector to the bin
-            bin_desc = np.sum(feature_array_neigbors * weights, axis = 0) / np.sum(weights)
+            bin_desc = np.sum(feature_array_neighbors * weights, axis = 0) / np.sum(weights)
 
             z[angular_bin, radial_bin]=bin_desc
             
