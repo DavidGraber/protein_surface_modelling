@@ -1,9 +1,9 @@
 from Bio.PDB.PDBParser import PDBParser
 import numpy as np
 
-def parse_pdb(parser, protein_id, filename, chain_number=0, numbering_offset=0):
+def parse_pdb(parser, protein_id, file, chain_number=0, numbering_offset=0):
     
-    protein_id = parser.get_structure(protein_id, filename)
+    protein_id = parser.get_structure(protein_id, file)
     models = list(protein_id.get_models())
     chains = list(models[0].get_chains())
     residues = list(chains[chain_number].get_residues())
