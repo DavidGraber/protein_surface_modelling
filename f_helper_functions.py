@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 
 def normalize_01(array):
     array_norm = (array - np.min(array))/(np.max(array)-np.min(array))
@@ -55,3 +56,8 @@ def polar_to_cart(polar_coords):
         y = rho * np.sin(theta)
         cart_coords = np.array([x, y])
     return cart_coords
+
+
+def save_object(obj, filename):
+    with open(filename, 'wb') as outp:  # Overwrites any existing file.
+        pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
