@@ -13,6 +13,7 @@ coordinate_aligner.py
 
 
 *test*
+*model*
 
 1fcc.pdb
 AAAA-unrelaxed-rank-1-model-5_A_predcoords.npy
