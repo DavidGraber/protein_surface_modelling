@@ -20,14 +20,14 @@ def generate_simple_graph(indeces, coords_sel, normals):
     #loop through each point that is within the radius and find its nearest neighbors and their euclidean distance
     for idx, point in enumerate(coords_sel):
         dist, neighbors = knn.kneighbors([point], return_distance=True)
-                
+              
         # loop through the nearest neighbors, calculate their geodesic distance to the point chosen above
         # Add the geodesic distance to a graph-dictionary
         
         for index, neighbor in enumerate(neighbors[0]):
             
             geo_dist = dist[0][index]*(2-np.dot(normals[indeces[idx]], normals[indeces[neighbor]]))        
-
+            
             if geo_dist !=0:
                 graph[indeces[idx]][indeces[neighbor]]=geo_dist
                 graph[indeces[neighbor]][indeces[idx]]=geo_dist
@@ -41,15 +41,15 @@ def generate_GNN_graph(patch_coords, patch_normals, patch_features):
     '''Function that takes a set of points, with their label, coordinates and surface normals. Calculates for each point the 
     geodesic distance to its n nearest neighbors and saves that information in a dictionary representing a graph. '''
     
-    #Initialize graph dictionary
-    geo_distances = {p:{} for p in range(len(patch_coords))}
+    #Initialize geodesic distances matrix
+    geo_dist_matrix = np.full((len(patch_coords), len(patch_coords)), np.inf)
 
+    edges = []
+    
     #Initialize Adjacency Matrix
     A = np.identity(n = len(patch_coords), dtype=np.float64)
 
-    #Initialize Edge Index
-    edge_index = []
-
+    #Initialize K-Nearest-Neighbor Search
     knn = NearestNeighbors(n_neighbors=10)
     knn.fit(patch_coords)
 
@@ -58,26 +58,40 @@ def generate_GNN_graph(patch_coords, patch_normals, patch_features):
         dist, neighbors = knn.kneighbors([point], return_distance=True)
                 
         # loop through the nearest neighbors, calculate their geodesic distance to the point chosen above
-        # Add the geodesic distance to a graph-dictionary
-        
+        # Add the geodesic distance to the distance matrix
+
         for index, neighbor in enumerate(neighbors[0]):
             
-            geo_dist = dist[0][index]*(2-np.dot(patch_normals[idx], patch_normals[neighbor]))        
+            geo_dist = dist[0][index]*(2-np.dot(patch_normals[idx], patch_normals[neighbor]))
+            
 
             if geo_dist !=0:
-                geo_distances[idx][neighbor]=geo_dist
-                geo_distances[neighbor][idx]=geo_dist
+
+                geo_dist_matrix[idx][neighbor]=geo_dist
+                geo_dist_matrix[neighbor][idx]=geo_dist
 
                 A[idx][neighbor] = 1
                 A[neighbor][idx] = 1
 
-                edge_index.append((idx, neighbor))
+                if (neighbor, idx) not in edges:
+                    edges.append((idx, neighbor))
 
+
+    #Initialize Edge Weights and Edge_Index
+    edge_weight = []
+    edge_index = [[],[]]
+    
+    for node1, node2 in edges: 
+        edge_index[0].append(node1)
+        edge_index[1].append(node2)
+        edge_weight.append(geo_dist_matrix[node1][node2])
+
+        
     edge_index = np.asarray(edge_index)
+    edge_weight = np.asarray(edge_weight)
     feature_matrix = patch_features
 
-    return patch_coords, geo_distances, A, edge_index, feature_matrix
-
+    return patch_coords, geo_dist_matrix, A, edge_index, edge_weight, feature_matrix
 
 
 
