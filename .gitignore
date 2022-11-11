@@ -1,10 +1,12 @@
 __pycache__
+.gitignore.txt
 extracted_patches/
 alphafold_outputs/
 masif_site_outputs/
 predfeatures/
 1fcc/
 data/
+extr_env/
 
 
 old.ipynb
