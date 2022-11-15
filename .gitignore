@@ -1,5 +1,4 @@
 __pycache__
-.gitignore.txt
 extracted_patches/
 alphafold_outputs/
 masif_site_outputs/
@@ -9,13 +8,15 @@ data/
 extr_env/
 
 
-old.ipynb
+z_old.ipynb
 toygraph.npy
 coordinate_aligner.py
+c_PatchDataset_GNN.py
+z_create_txt_list.ipynb
+z_move_files.ipynb
 
 
 *test*
-*model*
 
 1fcc.pdb
 AAAA-unrelaxed-rank-1-model-5_A_predcoords.npy
